@@ -263,11 +263,9 @@ export default {
     };
   },
 
-  beforeMount() {
-    this.loading = false;
-
-    const url =
-      "https://min-api.cryptocompare.com/data/all/coinlist?summary=true";
+  created() {
+    
+    const url = "https://min-api.cryptocompare.com/data/all/coinlist?summary=true";
 
     fetch(url)
       .then((response) => response.json())
@@ -277,20 +275,23 @@ export default {
           this.allCurrencies.push(res[el]);
         }
       })
-
       .catch((err) => console.error(err));
+  },
+
+  mounted() {
+    window.addEventListener('load', () => this.loading = false)
   },
 
   methods: {
     addTicker() {
       if (this.ticker !== "" && this.currencies.length) {
         if (this.tickers.every((el) => el.name != this.ticker.toUpperCase())) {
-          // this.currencies = [];
-
           const currentTicker = {
             name: this.ticker.toUpperCase(),
             price: "please, wait",
           };
+
+          this.tickers.push(currentTicker);
 
           setInterval(async () => {
             const f = await fetch(
@@ -311,7 +312,6 @@ export default {
             }
           }, 10000);
 
-          this.tickers.push(currentTicker);
           this.ticker = "";
         } else {
           this.tickerExist = true;
