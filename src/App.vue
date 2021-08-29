@@ -135,6 +135,62 @@
           </svg>
           Добавить
         </button>
+        <p class="block text-sm font-medium text-gray-700">Фильтр: <input class="
+                  block
+                  w-100
+                  pr-10
+                  border-gray-300
+                  text-gray-900
+                  focus:outline-none focus:ring-gray-500 focus:border-gray-500
+                  sm:text-sm
+                  rounded-md
+                " type="text"></p>
+        <button class="
+            my-4
+            inline-flex
+            items-center
+            py-2
+            px-4
+            border border-transparent
+            shadow-sm
+            text-sm
+            leading-4
+            font-medium
+            rounded-full
+            text-white
+            bg-gray-600
+            hover:bg-gray-700
+            transition-colors
+            duration-300
+            focus:outline-none
+            focus:ring-2
+            focus:ring-offset-2
+            focus:ring-gray-500
+            mr-5
+          ">Назад</button>
+        <button class="
+            my-4
+            inline-flex
+            items-center
+            py-2
+            px-4
+            border border-transparent
+            shadow-sm
+            text-sm
+            leading-4
+            font-medium
+            rounded-full
+            text-white
+            bg-gray-600
+            hover:bg-gray-700
+            transition-colors
+            duration-300
+            focus:outline-none
+            focus:ring-2
+            focus:ring-offset-2
+            focus:ring-gray-500
+            mr-5
+          ">Вперед</button>
       </section>
 
       <template v-if="tickers.length">
@@ -255,25 +311,28 @@ export default {
       ticker: "", // Значение в input
       tickers: [], // Массив с объектами название - число
       graph: [], // Массив со значением высот для столбиков в графике
+      currencies: ["BTC", "USD", "DOGE", "BCH"], // Массив для найденных валют
+      allCurrencies: [], // массив с данными fetch
       sel: null, // Значение для выбранного тикера
       loading: true, // Флажок для элемента загрузки страницы
       tickerExist: false, // Флажок, добалена ли валюта
-      currencies: ["BTC", "USD", "DOGE", "BCH"], // Массив для найденных валют
-      allCurrencies: [], // массив с данными fetch
+      page: 1, // Текущая страница пагинации
+      filter: "", // фильтр
+      hasNextPage: false, // Флажок, есть ли следующая страница
     };
   },
 
   created() {
     // Тикеры остаются при перезагрузке страницы
-    const dataTickers = localStorage.getItem('cryptonomicon-list')
+    // const dataTickers = localStorage.getItem('cryptonomicon-list')
     
-    if (dataTickers) {
-      this.tickers = JSON.parse(dataTickers)
-      this.tickers.forEach(ticker => {
-        this.subscribeToUpdates(ticker.name)
-      });
-
-    }
+    // if (dataTickers) {
+    //   this.tickers = JSON.parse(dataTickers)
+    //   this.tickers.forEach(ticker => {
+    //     this.subscribeToUpdates(ticker.name)
+    //   });
+    //   console.log(localStorage.getItem('cryptonomicon-list'))    
+    // }
     // Запрос имен криптовалют
     const url = "https://min-api.cryptocompare.com/data/all/coinlist?summary=true";
 
@@ -341,7 +400,7 @@ export default {
     // Удалить только тикер
     removeTicker(elemToRemove) {
       this.tickers = this.tickers.filter((el) => el != elemToRemove);
-      // localStorage.removeItem('cryptonomicon-list', JSON.stringify(elemToRemove))
+      // localStorage.removeItem('cryptonomicon-list', JSON.stringify(this.tickers.find(el => el.name == elemToRemove.name)))
     },
     // Удалить тикер вместе с графиком
     removeTickerGraph(elemToRemove) {
@@ -352,6 +411,10 @@ export default {
     selectTicker(selectingTicker) {
       this.sel = selectingTicker;
       this.graph = [];
+    },
+
+    filteredTickers() {
+      return this.tickers.filter(ticker => ticker.name.includes(this.filter))
     },
     // Валидация имени криптовалюты
     validate() {
