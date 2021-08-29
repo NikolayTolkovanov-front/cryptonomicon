@@ -257,14 +257,24 @@ export default {
       graph: [], // Массив со значением высот для столбиков в графике
       sel: null, // Значение для выбранного тикера
       loading: true, // Флажок для элемента загрузки страницы
-      tickerExist: false, // Флажок, добалены ли валюта
+      tickerExist: false, // Флажок, добалена ли валюта
       currencies: ["BTC", "USD", "DOGE", "BCH"], // Массив для найденных валют
-      allCurrencies: [],
+      allCurrencies: [], // массив с данными fetch
     };
   },
 
   created() {
+    // Тикеры остаются при перезагрузке страницы
+    const dataTickers = localStorage.getItem('cryptonomicon-list')
     
+    if (dataTickers) {
+      this.tickers = JSON.parse(dataTickers)
+      this.tickers.forEach(ticker => {
+        this.subscribeToUpdates(ticker.name)
+      });
+
+    }
+    // Запрос имен криптовалют
     const url = "https://min-api.cryptocompare.com/data/all/coinlist?summary=true";
 
     fetch(url)
@@ -277,15 +287,41 @@ export default {
       })
       .catch((err) => console.error(err));
   },
-
+  // Загрузка страицы
   mounted() {
     window.addEventListener('load', () => this.loading = false)
   },
 
   methods: {
+    // Обновление данных
+    subscribeToUpdates(tickerName) {
+      setInterval(async () => {
+            const f = await fetch(
+              `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD`
+            );
+
+            const data = await f.json();
+            const trueTicker = this.tickers.find(
+              (el) => el.name === tickerName
+            );
+
+            if (trueTicker !== undefined) {
+              trueTicker.price = data.USD;
+            }
+
+            if (this.sel?.name === tickerName) {
+              this.graph.push(data.USD);
+            }
+          }, 10000);
+
+          this.ticker = "";
+    },
+    // Добавить тикер
     addTicker() {
+      // Валидация input
       if (this.ticker !== "" && this.currencies.length) {
         if (this.tickers.every((el) => el.name != this.ticker.toUpperCase())) {
+
           const currentTicker = {
             name: this.ticker.toUpperCase(),
             price: "please, wait",
@@ -293,55 +329,36 @@ export default {
 
           this.tickers.push(currentTicker);
 
-          setInterval(async () => {
-            const f = await fetch(
-              `https://min-api.cryptocompare.com/data/price?fsym=${currentTicker.name}&tsyms=USD`
-            );
+          localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers))
 
-            const data = await f.json();
-            const trueTicker = this.tickers.find(
-              (el) => el.name === currentTicker.name
-            );
-
-            if (trueTicker !== undefined) {
-              trueTicker.price = data.USD;
-            }
-
-            if (this.sel?.name === currentTicker.name) {
-              this.graph.push(data.USD);
-            }
-          }, 10000);
-
-          this.ticker = "";
+          this.subscribeToUpdates(currentTicker.name)
+          
         } else {
           this.tickerExist = true;
         }
       }
     },
-
+    // Удалить только тикер
     removeTicker(elemToRemove) {
       this.tickers = this.tickers.filter((el) => el != elemToRemove);
+      // localStorage.removeItem('cryptonomicon-list', JSON.stringify(elemToRemove))
     },
-
+    // Удалить тикер вместе с графиком
     removeTickerGraph(elemToRemove) {
       this.tickers = this.tickers.filter((el) => el != elemToRemove);
       this.sel = null;
     },
-
+    // Нажатие на тикер
     selectTicker(selectingTicker) {
       this.sel = selectingTicker;
       this.graph = [];
     },
-
+    // Валидация имени криптовалюты
     validate() {
       this.tickerExist = false;
       this.currencies = [];
-
-      for (
-        let i = 0;
-        i < this.allCurrencies.length && this.currencies.length < 4;
-        i++
-      ) {
+      // Пока длина строки выбора валют меньше 4
+      for (let i = 0; i < this.allCurrencies.length && this.currencies.length < 4; i++) {
         if (
           this.allCurrencies[i].FullName.slice(
             0,
