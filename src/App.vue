@@ -135,17 +135,25 @@
           </svg>
           Добавить
         </button>
-        <p class="block text-sm font-medium text-gray-700">Фильтр: <input class="
-                  block
-                  w-100
-                  pr-10
-                  border-gray-300
-                  text-gray-900
-                  focus:outline-none focus:ring-gray-500 focus:border-gray-500
-                  sm:text-sm
-                  rounded-md
-                " type="text"></p>
-        <button class="
+        <p class="block text-sm font-medium text-gray-700">Фильтр: 
+          <input
+            v-model="filter" 
+            class="
+                block
+                w-100
+                pr-10
+                border-gray-300
+                text-gray-900
+                focus:outline-none focus:ring-gray-500 focus:border-gray-500
+                sm:text-sm
+                rounded-md
+                " 
+            type="text">
+        </p>
+        <button
+        v-if="page > 1"
+        @click="page = page - 1"
+        class="
             my-4
             inline-flex
             items-center
@@ -168,7 +176,10 @@
             focus:ring-gray-500
             mr-5
           ">Назад</button>
-        <button class="
+        <button
+        v-if="hasNextPage"
+        @click="page = page + 1"
+         class="
             my-4
             inline-flex
             items-center
@@ -197,7 +208,7 @@
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
-            v-for="elem in tickers"
+            v-for="elem in filteredTickers()"
             @click="selectTicker(elem)"
             :key="elem.id"
             :class="{ 'border-4': sel === elem }"
@@ -210,7 +221,7 @@
               cursor-pointer
             "
           >
-            <div class="px-4 py-5 sm:p-6 text-center">
+            <div class="flex flex-col px-4 py-5 sm:p-6 text-center">
               <dt class="text-sm font-medium text-gray-500 truncate">
                 {{ elem.name }}
               </dt>
@@ -225,6 +236,7 @@
               "
               class="
                 flex
+                self-end
                 items-center
                 justify-center
                 font-medium
@@ -318,21 +330,32 @@ export default {
       tickerExist: false, // Флажок, добалена ли валюта
       page: 1, // Текущая страница пагинации
       filter: "", // фильтр
-      hasNextPage: false, // Флажок, есть ли следующая страница
+      hasNextPage: true, // Флажок, есть ли следующая страница
     };
   },
 
   created() {
+    const windowData = Object.fromEntries(
+      new URL(window.location).searchParams.entries()
+    )
+
+    if (windowData.filter) {
+      this.filter = windowData.filter
+    }
+
+    if (windowData.page) {
+      this.page = Number(windowData.page)
+    }
+
     // Тикеры остаются при перезагрузке страницы
-    // const dataTickers = localStorage.getItem('cryptonomicon-list')
+    const dataTickers = localStorage.getItem('cryptonomicon-list')
     
-    // if (dataTickers) {
-    //   this.tickers = JSON.parse(dataTickers)
-    //   this.tickers.forEach(ticker => {
-    //     this.subscribeToUpdates(ticker.name)
-    //   });
-    //   console.log(localStorage.getItem('cryptonomicon-list'))    
-    // }
+    if (dataTickers) {
+      this.tickers = JSON.parse(dataTickers)
+      this.tickers.forEach(ticker => {
+        this.subscribeToUpdates(ticker.name)
+      });
+    }
     // Запрос имен криптовалют
     const url = "https://min-api.cryptocompare.com/data/all/coinlist?summary=true";
 
@@ -377,9 +400,8 @@ export default {
     },
     // Добавить тикер
     addTicker() {
-      // Валидация input
-      if (this.ticker !== "" && this.currencies.length) {
-        if (this.tickers.every((el) => el.name != this.ticker.toUpperCase())) {
+      if (this.ticker !== "") {
+        if (this.tickers.every(ticker => ticker.name != this.ticker.toUpperCase())) {
 
           const currentTicker = {
             name: this.ticker.toUpperCase(),
@@ -387,6 +409,7 @@ export default {
           };
 
           this.tickers.push(currentTicker);
+          this.filter = ""
 
           localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers))
 
@@ -399,7 +422,11 @@ export default {
     },
     // Удалить только тикер
     removeTicker(elemToRemove) {
-      this.tickers = this.tickers.filter((el) => el != elemToRemove);
+      this.tickers = this.tickers.filter(ticker => ticker != elemToRemove);
+
+      if (this.ticker == elemToRemove.name) {
+        this.tickerExist = false
+      }
       // localStorage.removeItem('cryptonomicon-list', JSON.stringify(this.tickers.find(el => el.name == elemToRemove.name)))
     },
     // Удалить тикер вместе с графиком
@@ -412,9 +439,16 @@ export default {
       this.sel = selectingTicker;
       this.graph = [];
     },
-
+    // Фильтрация
     filteredTickers() {
-      return this.tickers.filter(ticker => ticker.name.includes(this.filter))
+      const start = (this.page - 1) * 6
+      const end = this.page * 6
+
+      let filteredTickers = this.tickers.filter(ticker => ticker.name.slice(0, this.filter.length).toUpperCase() == this.filter.toUpperCase())
+
+      this.hasNextPage = filteredTickers.length > end
+      
+      return filteredTickers.slice(start, end)
     },
     // Валидация имени криптовалюты
     validate() {
@@ -432,7 +466,7 @@ export default {
             this.ticker.length
           ).toUpperCase() === this.ticker.toUpperCase()
         ) {
-          this.currencies.push(this.allCurrencies[i].Symbol.toUpperCase());
+          this.currencies.push(this.allCurrencies[i].Symbol.toUpperCase()) ||
           this.currencies.push(this.allCurrencies[i].FullName.toUpperCase());
         }
       }
@@ -441,7 +475,7 @@ export default {
         this.currencies = [];
       }
     },
-
+    // Правила для выведения столбцов в графике
     normalizeGraph() {
       const maxValue = Math.max(...this.graph);
       const minValue = Math.min(...this.graph);
@@ -454,7 +488,7 @@ export default {
         (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
       );
     },
-
+    // Добавление валюты при нажатии на список валют
     addCurrency(currentCurrency) {
       this.ticker = currentCurrency;
 
@@ -466,6 +500,22 @@ export default {
         this.tickerExist = true;
       }
     },
+  },
+
+  watch: {
+    filter() {
+      this.page = 1
+
+      history.pushState(null,
+        document.title,
+        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`)
+    },
+
+    page() {
+      history.pushState(null,
+        document.title,
+        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`)
+    }
   },
 };
 </script>
