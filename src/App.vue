@@ -204,7 +204,7 @@
           ">Вперед</button>
       </section>
 
-      <template v-if="tickers.length">
+      <template v-if="tickers.length && filteredTickers.length">
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
@@ -315,7 +315,20 @@
 </template>
 
 <script>
+// [x] Наличие в состоянии ЗАВИСИМЫХ ДАННЫХ | Критичность: 5+
+// [ ] Запросы напрямую внутри компонента (???) | Критичность: 5
+// [ ] При удалении остается подписка на загрузку тикера | Критичность: 5
+// [ ] Обработка ошибок API | Критичность: 5
+// [ ] Количество запросов | Критичность: 4
+// [x] При удалении тикера не изменяется localStorage | Критичность: 4
+// [x] Одинаковый код в watch | Критичность: 3
+// [ ] localStorage и анонимные вкладки | Критичность: 3
+// [x] График ужасно выглядит если будет много цен | Критичность: 2
+// [ ].Магические строки и числа (URL, 5000 миллисекунд задержки, ключ локал стораджа, количество на странице) |  Критичность: 1
 
+// Параллельно
+// [x] График сломан если везде одинаковые значения
+// [x] При удалении тикера остается выбор
 export default {
   name: "App",
 
@@ -332,7 +345,7 @@ export default {
       selectedTicker: null, // Значение для выбранного тикера
       loading: true, // Флажок для элемента загрузки страницы
       tickerExist: false, // Флажок, добалена ли валюта
-      
+
       page: 1, // Текущая страница пагинации
     };
   },
@@ -351,10 +364,6 @@ export default {
         this[key] = windowData[key];
       }
     });
-
-    if (windowData.page) {
-      this.page = Number(windowData.page)
-    }
 
     // Тикеры остаются при перезагрузке страницы
     const dataTickers = localStorage.getItem('cryptonomicon-list')
@@ -389,7 +398,7 @@ export default {
     },
 
     filteredTickers() {
-      return this.tickers.filter(ticker => ticker.name.includes(this.filter));
+      return this.tickers.filter(ticker => ticker.name.slice(0, this.filter.length).toUpperCase() === this.filter.toUpperCase());
     },
 
     paginatedTickers() {
@@ -480,9 +489,10 @@ export default {
     },
     // Валидация имени криптовалюты
     autocomplete() {
+      console.log('autocomplete')
       this.tickerExist = false;
       this.currencies = [];
-      // Пока длина строки выбора валют меньше 4
+      // Пока длина строки выбора валют меньше 4 или пока список валют не закончится
       for (let i = 0; i < this.allCurrencies.length && this.currencies.length < 4; i++) {
         let fullName = this.allCurrencies[i].FullName
         let symbol = this.allCurrencies[i].Symbol
@@ -491,8 +501,8 @@ export default {
           symbol.slice(0, this.ticker.length).toUpperCase() === this.ticker.toUpperCase()) 
           {
             this.currencies = 
-            [...this.currencies, this.allCurrencies[i].Symbol.toUpperCase()] || 
-            [...this.currencies, this.allCurrencies[i].FullName.toUpperCase()]
+            [...this.currencies, symbol.toUpperCase()] ||
+            [...this.currencies, fullName.toUpperCase()] 
         }
       }
 
@@ -509,6 +519,10 @@ export default {
         this.addTicker();
         this.ticker = currentCurrency;
       } 
+
+      if (this.ticker === "") {
+        this.currencies = []
+      }
     },
   },
 
