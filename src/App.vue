@@ -47,7 +47,7 @@
               <input
                 v-model="ticker"
                 @keydown.enter="addTicker()"
-                @input="validate()"
+                @input="autocomplete()"
                 type="text"
                 name="wallet"
                 id="wallet"
@@ -208,10 +208,10 @@
         <hr class="w-full border-t border-gray-600 my-4" />
         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
           <div
-            v-for="elem in filteredTickers()"
+            v-for="elem in paginatedTickers"
             @click="selectTicker(elem)"
             :key="elem.id"
-            :class="{ 'border-4': sel === elem }"
+            :class="{ 'border-4': selectedTicker === elem }"
             class="
               bg-white
               overflow-hidden
@@ -232,7 +232,7 @@
             <div class="w-full border-t border-gray-200"></div>
             <button
               @click.stop="
-                sel === elem ? removeTickerGraph(elem) : removeTicker(elem)
+                removeTicker(elem)
               "
               class="
                 flex
@@ -270,20 +270,20 @@
         <hr class="w-full border-t border-gray-600 my-4" />
       </template>
 
-      <section v-if="sel" class="relative">
+      <section v-if="selectedTicker" class="relative">
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
-          {{ sel.name }} - USD
+          {{ selectedTicker.name }} - USD
         </h3>
         <div class="flex items-end border-gray-600 border-b border-l h-64">
           <div
-            v-for="(bar, idx) in normalizeGraph()"
+            v-for="(bar, idx) in normalizedGraph"
             :key="idx"
             :style="{ height: `${bar}%` }"
             class="bg-purple-800 border w-10"
           ></div>
         </div>
         <button
-          @click="sel = null"
+          @click="selectedTicker = null"
           type="button"
           class="absolute top-0 right-0"
         >
@@ -315,33 +315,42 @@
 </template>
 
 <script>
+
 export default {
   name: "App",
 
   data() {
     return {
       ticker: "", // Значение в input
+      filter: "", // фильтр
+
       tickers: [], // Массив с объектами название - число
       graph: [], // Массив со значением высот для столбиков в графике
       currencies: ["BTC", "USD", "DOGE", "BCH"], // Массив для найденных валют
       allCurrencies: [], // массив с данными fetch
-      sel: null, // Значение для выбранного тикера
+
+      selectedTicker: null, // Значение для выбранного тикера
       loading: true, // Флажок для элемента загрузки страницы
       tickerExist: false, // Флажок, добалена ли валюта
+      
       page: 1, // Текущая страница пагинации
-      filter: "", // фильтр
-      hasNextPage: true, // Флажок, есть ли следующая страница
     };
   },
 
   created() {
+    window.onload = () => this.loading = false
+
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
-    )
+    );
 
-    if (windowData.filter) {
-      this.filter = windowData.filter
-    }
+    const VALID_KEYS = ["filter", "page"];
+    
+    VALID_KEYS.forEach(key => {
+      if (windowData[key]) {
+        this[key] = windowData[key];
+      }
+    });
 
     if (windowData.page) {
       this.page = Number(windowData.page)
@@ -369,30 +378,68 @@ export default {
       })
       .catch((err) => console.error(err));
   },
-  // Загрузка страицы
-  mounted() {
-    window.addEventListener('load', () => this.loading = false)
+
+  computed: {
+    startIndex() {
+      return (this.page - 1) * 6;
+    },
+
+    endIndex() {
+      return this.page * 6;
+    },
+
+    filteredTickers() {
+      return this.tickers.filter(ticker => ticker.name.includes(this.filter));
+    },
+
+    paginatedTickers() {
+      return this.filteredTickers.slice(this.startIndex, this.endIndex);
+    },
+
+    hasNextPage() {
+      return this.filteredTickers.length > this.endIndex;
+    },
+
+    normalizedGraph() {
+      const maxValue = Math.max(...this.graph);
+      const minValue = Math.min(...this.graph);
+
+      if (maxValue === minValue) {
+        return this.graph.map(() => 50);
+      }
+
+      return this.graph.map(
+        price => 5 + ((price - minValue) * 95) / (maxValue - minValue)
+      );
+    },
+
+    pageStateOptions() {
+      return {
+        filter: this.filter,
+        page: this.page
+      };
+    }
   },
 
   methods: {
     // Обновление данных
     subscribeToUpdates(tickerName) {
-      setInterval(async () => {
+      setTimeout(async () => {
             const f = await fetch(
-              `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD`
+              `https://min-api.cryptocompare.com/data/price?fsym=${tickerName}&tsyms=USD&api_key=2579a0b46e780867fb344a5915944d5573fecb55aac44c88c7ab4280d933b61d`
             );
 
-            const data = await f.json();
+            const response = await f.json();
             const trueTicker = this.tickers.find(
-              (el) => el.name === tickerName
+              (ticker) => ticker.name === tickerName
             );
 
             if (trueTicker !== undefined) {
-              trueTicker.price = data.USD;
+              trueTicker.price = response.USD;
             }
 
-            if (this.sel?.name === tickerName) {
-              this.graph.push(data.USD);
+            if (this.selectedTicker?.name === tickerName) {
+              this.graph.push(response.USD);
             }
           }, 10000);
 
@@ -408,10 +455,8 @@ export default {
             price: "please, wait",
           };
 
-          this.tickers.push(currentTicker);
+          this.tickers = [...this.tickers, currentTicker];
           this.filter = ""
-
-          localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers))
 
           this.subscribeToUpdates(currentTicker.name)
           
@@ -421,53 +466,33 @@ export default {
       }
     },
     // Удалить только тикер
-    removeTicker(elemToRemove) {
-      this.tickers = this.tickers.filter(ticker => ticker != elemToRemove);
+    removeTicker(tickerToRemove) {
+      this.tickers = this.tickers.filter(ticker => ticker !== tickerToRemove);
 
-      if (this.ticker == elemToRemove.name) {
+      if (this.selectedTicker === tickerToRemove) {
+        this.selectedTicker = null
         this.tickerExist = false
       }
-      // localStorage.removeItem('cryptonomicon-list', JSON.stringify(this.tickers.find(el => el.name == elemToRemove.name)))
-    },
-    // Удалить тикер вместе с графиком
-    removeTickerGraph(elemToRemove) {
-      this.tickers = this.tickers.filter((el) => el != elemToRemove);
-      this.sel = null;
     },
     // Нажатие на тикер
-    selectTicker(selectingTicker) {
-      this.sel = selectingTicker;
-      this.graph = [];
-    },
-    // Фильтрация
-    filteredTickers() {
-      const start = (this.page - 1) * 6
-      const end = this.page * 6
-
-      let filteredTickers = this.tickers.filter(ticker => ticker.name.slice(0, this.filter.length).toUpperCase() == this.filter.toUpperCase())
-
-      this.hasNextPage = filteredTickers.length > end
-      
-      return filteredTickers.slice(start, end)
+    selectTicker(ticker) {
+      this.selectedTicker = ticker;
     },
     // Валидация имени криптовалюты
-    validate() {
+    autocomplete() {
       this.tickerExist = false;
       this.currencies = [];
       // Пока длина строки выбора валют меньше 4
       for (let i = 0; i < this.allCurrencies.length && this.currencies.length < 4; i++) {
-        if (
-          this.allCurrencies[i].FullName.slice(
-            0,
-            this.ticker.length
-          ).toUpperCase() === this.ticker.toUpperCase() ||
-          this.allCurrencies[i].Symbol.slice(
-            0,
-            this.ticker.length
-          ).toUpperCase() === this.ticker.toUpperCase()
-        ) {
-          this.currencies.push(this.allCurrencies[i].Symbol.toUpperCase()) ||
-          this.currencies.push(this.allCurrencies[i].FullName.toUpperCase());
+        let fullName = this.allCurrencies[i].FullName
+        let symbol = this.allCurrencies[i].Symbol
+
+        if (fullName.slice(0,this.ticker.length).toUpperCase() === this.ticker.toUpperCase() ||
+          symbol.slice(0, this.ticker.length).toUpperCase() === this.ticker.toUpperCase()) 
+          {
+            this.currencies = 
+            [...this.currencies, this.allCurrencies[i].Symbol.toUpperCase()] || 
+            [...this.currencies, this.allCurrencies[i].FullName.toUpperCase()]
         }
       }
 
@@ -475,46 +500,43 @@ export default {
         this.currencies = [];
       }
     },
-    // Правила для выведения столбцов в графике
-    normalizeGraph() {
-      const maxValue = Math.max(...this.graph);
-      const minValue = Math.min(...this.graph);
-
-      if (this.graph.length > 31) {
-        this.graph.shift();
-      }
-
-      return this.graph.map(
-        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
-      );
-    },
     // Добавление валюты при нажатии на список валют
     addCurrency(currentCurrency) {
       this.ticker = currentCurrency;
+      this.tickerExist = true;
 
-      if (this.tickers.every((el) => el.name != currentCurrency)) {
+      if (this.tickers.every((el) => el.name !== currentCurrency)) {
         this.addTicker();
         this.ticker = currentCurrency;
-        this.tickerExist = true;
-      } else {
-        this.tickerExist = true;
-      }
+      } 
     },
   },
 
   watch: {
-    filter() {
-      this.page = 1
-
-      history.pushState(null,
-        document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`)
+    selectedTicker() {
+      this.graph = []
     },
 
-    page() {
-      history.pushState(null,
+    tickers() {
+      localStorage.setItem('cryptonomicon-list', JSON.stringify(this.tickers))
+    },
+
+    paginatedTickers() {
+      if (this.paginatedTickers.length === 0 && this.page > 1) {
+        this.page -= 1;
+      }
+    },
+
+    filter() {
+      this.page = 1
+    },
+
+    pageStateOptions(value) {
+      window.history.pushState(
+        null,
         document.title,
-        `${window.location.pathname}?filter=${this.filter}&page=${this.page}`)
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
+      );
     }
   },
 };
