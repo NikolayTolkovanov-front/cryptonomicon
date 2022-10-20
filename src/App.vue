@@ -1,5 +1,6 @@
 <template>
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
+    <!-- load -->
     <div
       v-if="loading"
       class="
@@ -36,7 +37,10 @@
         ></path>
       </svg>
     </div>
+    <!-- /load -->
+
     <div class="container">
+      <!-- addTicker -->
       <section>
         <div class="flex">
           <div class="max-w-xs">
@@ -135,6 +139,7 @@
           </svg>
           Добавить
         </button>
+        <!-- filter -->
         <p class="block text-sm font-medium text-gray-700">
           Фильтр:
           <input
@@ -152,6 +157,8 @@
             type="text"
           />
         </p>
+        <!-- /filter -->
+        <!-- pagination -->
         <button
           v-if="page > 1"
           @click="page = page - 1"
@@ -216,72 +223,87 @@
         >
           {{ page }} страница
         </p>
+        <!-- /pagination -->
       </section>
+      <!-- /addTicker -->
 
-      <template v-if="tickers.length && filteredTickers.length">
-        <hr class="w-full border-t border-gray-600 my-4" />
-        <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <div
-            v-for="t in paginatedTickers"
-            @click="selectTicker(t)"
-            :key="t.id"
-            :class="{ 'border-4': selectedTicker === t }"
-            class="
-              bg-white
-              overflow-hidden
-              shadow
-              rounded-lg
-              border-purple-800 border-solid
-              cursor-pointer
-            "
-          >
-            <div class="flex flex-col px-4 py-5 sm:p-6 text-center">
-              <dt class="text-sm font-medium text-gray-500 truncate">
-                {{ t.name }} - USD
-              </dt>
-              <dd class="mt-1 text-3xl font-semibold text-gray-900">
-                {{ formatPrice(t.price) }}
-              </dd>
-            </div>
-            <div class="w-full border-t border-gray-200"></div>
-            <button
-              @click.stop="removeTicker(t)"
+      <!-- tickers -->
+      <section>
+        <template v-if="tickers.length && filteredTickers.length">
+          <hr class="w-full border-t border-gray-600 my-4" />
+          {{ invalidTickers }}
+          <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div
+              v-for="t in paginatedTickers"
+              @click="selectTicker(t)"
+              :key="t.id"
+              :class="{
+                'border-4': selectedTicker === t,
+              }"
               class="
-                flex
-                self-end
-                items-center
-                justify-center
-                font-medium
-                w-full
-                bg-gray-100
-                px-4
-                py-4
-                sm:px-6
-                text-md text-gray-500
-                hover:text-gray-600 hover:bg-gray-200 hover:opacity-20
-                transition-all
-                focus:outline-none
+                bg-white
+                overflow-hidden
+                shadow
+                rounded-lg
+                border-purple-800 border-solid
+                cursor-pointer
               "
             >
-              <svg
-                class="h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="#718096"
-                aria-hidden="true"
+              <div
+                class="flex flex-col px-4 py-5 sm:p-6 text-center"
+                :class="{
+                  'bg-red-100': invalidTickers.includes(t.name),
+                }"
               >
-                <path
-                  fill-rule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                ></path></svg
-              >Удалить
-            </button>
-          </div>
-        </dl>
-        <hr class="w-full border-t border-gray-600 my-4" />
-      </template>
+                <dt class="text-sm font-medium text-gray-500 truncate">
+                  {{ t.name }} - USD
+                </dt>
+                <dd class="mt-1 text-3xl font-semibold text-gray-900">
+                  {{ formatPrice(t.price) }}
+                </dd>
+              </div>
+              <div class="w-full border-t border-gray-200"></div>
+              <button
+                @click.stop="removeTicker(t)"
+                class="
+                  flex
+                  self-end
+                  items-center
+                  justify-center
+                  font-medium
+                  w-full
+                  bg-gray-100
+                  px-4
+                  py-4
+                  sm:px-6
+                  text-md text-gray-500
+                  hover:text-gray-600 hover:bg-gray-200 hover:opacity-20
+                  transition-all
+                  focus:outline-none
+                "
+              >
+                <svg
+                  class="h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="#718096"
+                  aria-hidden="true"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  ></path></svg
+                >Удалить
+              </button>
+            </div>
+          </dl>
+          <hr class="w-full border-t border-gray-600 my-4" />
+        </template>
+      </section>
+      <!-- /tickers -->
 
+      <!-- graph -->
       <section v-if="selectedTicker" class="relative">
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           {{ selectedTicker.name }} - USD
@@ -322,18 +344,18 @@
           </svg>
         </button>
       </section>
+      <!-- /graph -->
     </div>
   </div>
 </template>
 
 <script>
-// Добавить метод или computed validateTicker
-// Добавить метод или computed existingTicker
 import {
-  loadCoinNamesTo,
   subscribeToTicker,
   unsubscribeFromTicker,
-} from "./api"
+  getInvalidTickers,
+} from "./api/websocket.js"
+import { loadCoinNamesTo } from "./api/https.js"
 
 export default {
   name: "App",
@@ -347,6 +369,7 @@ export default {
       graph: [], // Массив со значением высот для столбиков в графике
       currencies: ["BTC", "USD", "DOGE", "BCH"], // Массив для найденных валют
       coinNames: [], // массив с запросом fetch на имена и символы валют
+      invalidTickers: [], // невалидные имена валют
 
       selectedTicker: null, // Значение для выбранного тикера
       loading: true, // Флажок для элемента загрузки страницы
@@ -403,6 +426,11 @@ export default {
       )
     },
 
+    // notValidTickers() {
+    //   this.invalidTickers = [...this.invalidTickers, getInvalidTicerks()]
+    //   return this.invalidTickers
+    // },
+
     paginatedTickers() {
       return this.filteredTickers.slice(this.startIndex, this.endIndex)
     },
@@ -435,6 +463,7 @@ export default {
   methods: {
     // Обновление данных
     updateTicker(tickerName, price) {
+      this.invalidTickers = getInvalidTickers()
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
@@ -454,16 +483,17 @@ export default {
         ) {
           const currentTicker = {
             name: tickerName.toUpperCase(),
-            price: "please, wait",
+            price: "-",
           }
 
           this.tickers = [...this.tickers, currentTicker]
+
           this.ticker = ""
           this.filter = ""
 
-          subscribeToTicker(currentTicker.name, (newPrice) =>
-            this.updateTicker(currentTicker.name, newPrice),
-          )
+          subscribeToTicker(currentTicker.name, (newPrice) => {
+            this.updateTicker(currentTicker.name, newPrice)
+          })
         } else {
           this.tickerExist = true
           this.ticker = tickerName
@@ -472,12 +502,12 @@ export default {
     },
     // Форматировать цену по нулям
     formatPrice(price) {
-      if (price === "please, wait") {
+      if (price === "-") {
         return price
       }
       return price > 1 ? price.toFixed(2) : price.toPrecision(2)
     },
-    // Удалить только тикер
+    // Удалить тикер
     removeTicker(tickerToRemove) {
       this.tickers = this.tickers.filter((ticker) => ticker !== tickerToRemove)
 
