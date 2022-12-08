@@ -3,18 +3,7 @@
     <!-- load -->
     <div
       v-if="loading"
-      class="
-        fixed
-        w-100
-        h-100
-        opacity-80
-        bg-purple-800
-        inset-0
-        z-50
-        flex
-        items-center
-        justify-center
-      "
+      class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center"
     >
       <svg
         class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
@@ -40,7 +29,6 @@
     <!-- /load -->
 
     <div class="container">
-      <!-- addTicker -->
       <section>
         <div class="flex">
           <div class="max-w-xs">
@@ -55,16 +43,7 @@
                 type="text"
                 name="wallet"
                 id="wallet"
-                class="
-                  block
-                  w-full
-                  pr-10
-                  border-gray-300
-                  text-gray-900
-                  focus:outline-none focus:ring-gray-500 focus:border-gray-500
-                  sm:text-sm
-                  rounded-md
-                "
+                class="block w-full pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
                 placeholder="Например DOGE"
                 autocomplete="off"
               />
@@ -77,18 +56,7 @@
                 v-for="currency in currencies"
                 :key="currency.id"
                 @click="addTicker(currency)"
-                class="
-                  inline-flex
-                  items-center
-                  px-2
-                  m-1
-                  rounded-md
-                  text-xs
-                  font-medium
-                  bg-gray-300
-                  text-gray-800
-                  cursor-pointer
-                "
+                class="inline-flex items-center px-2 m-1 rounded-md text-xs font-medium bg-gray-300 text-gray-800 cursor-pointer"
               >
                 {{ currency }}
               </span>
@@ -101,28 +69,7 @@
         <button
           @click="addTicker()"
           type="button"
-          class="
-            my-4
-            inline-flex
-            items-center
-            py-2
-            px-4
-            border border-transparent
-            shadow-sm
-            text-sm
-            leading-4
-            font-medium
-            rounded-full
-            text-white
-            bg-gray-600
-            hover:bg-gray-700
-            transition-colors
-            duration-300
-            focus:outline-none
-            focus:ring-2
-            focus:ring-offset-2
-            focus:ring-gray-500
-          "
+          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
         >
           <!-- Heroicon name: solid/mail -->
           <svg
@@ -144,16 +91,7 @@
           Фильтр:
           <input
             v-model="filter"
-            class="
-              block
-              w-100
-              pr-10
-              border-gray-300
-              text-gray-900
-              focus:outline-none focus:ring-gray-500 focus:border-gray-500
-              sm:text-sm
-              rounded-md
-            "
+            class="block w-100 pr-10 border-gray-300 text-gray-900 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
             type="text"
           />
         </p>
@@ -162,58 +100,14 @@
         <button
           v-if="page > 1"
           @click="page = page - 1"
-          class="
-            my-4
-            inline-flex
-            items-center
-            py-2
-            px-4
-            border border-transparent
-            shadow-sm
-            text-sm
-            leading-4
-            font-medium
-            rounded-full
-            text-white
-            bg-gray-600
-            hover:bg-gray-700
-            transition-colors
-            duration-300
-            focus:outline-none
-            focus:ring-2
-            focus:ring-offset-2
-            focus:ring-gray-500
-            mr-5
-          "
+          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-5"
         >
           Назад
         </button>
         <button
           v-if="hasNextPage"
           @click="page = page + 1"
-          class="
-            my-4
-            inline-flex
-            items-center
-            py-2
-            px-4
-            border border-transparent
-            shadow-sm
-            text-sm
-            leading-4
-            font-medium
-            rounded-full
-            text-white
-            bg-gray-600
-            hover:bg-gray-700
-            transition-colors
-            duration-300
-            focus:outline-none
-            focus:ring-2
-            focus:ring-offset-2
-            focus:ring-gray-500
-            mr-5
-          "
+          class="my-4 inline-flex items-center py-2 px-4 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-full text-white bg-gray-600 hover:bg-gray-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 mr-5"
         >
           Вперед
         </button>
@@ -225,13 +119,10 @@
         </p>
         <!-- /pagination -->
       </section>
-      <!-- /addTicker -->
-
       <!-- tickers -->
       <section>
         <template v-if="tickers.length && filteredTickers.length">
           <hr class="w-full border-t border-gray-600 my-4" />
-          {{ invalidTickers }}
           <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
             <div
               v-for="t in paginatedTickers"
@@ -240,14 +131,7 @@
               :class="{
                 'border-4': selectedTicker === t,
               }"
-              class="
-                bg-white
-                overflow-hidden
-                shadow
-                rounded-lg
-                border-purple-800 border-solid
-                cursor-pointer
-              "
+              class="bg-white overflow-hidden shadow rounded-lg border-purple-800 border-solid cursor-pointer"
             >
               <div
                 class="flex flex-col px-4 py-5 sm:p-6 text-center"
@@ -265,22 +149,7 @@
               <div class="w-full border-t border-gray-200"></div>
               <button
                 @click.stop="removeTicker(t)"
-                class="
-                  flex
-                  self-end
-                  items-center
-                  justify-center
-                  font-medium
-                  w-full
-                  bg-gray-100
-                  px-4
-                  py-4
-                  sm:px-6
-                  text-md text-gray-500
-                  hover:text-gray-600 hover:bg-gray-200 hover:opacity-20
-                  transition-all
-                  focus:outline-none
-                "
+                class="flex self-end items-center justify-center font-medium w-full bg-gray-100 px-4 py-4 sm:px-6 text-md text-gray-500 hover:text-gray-600 hover:bg-gray-200 hover:opacity-20 transition-all focus:outline-none"
               >
                 <svg
                   class="h-5 w-5"
@@ -308,12 +177,16 @@
         <h3 class="text-lg leading-6 font-medium text-gray-900 my-8">
           {{ selectedTicker.name }} - USD
         </h3>
-        <div class="flex items-end border-gray-600 border-b border-l h-64">
+        <div
+          class="flex items-end border-gray-600 border-b border-l h-64"
+          ref="graph"
+        >
           <div
             v-for="(bar, idx) in normalizedGraph"
             :key="idx"
             :style="{ height: `${bar}%` }"
             class="bg-purple-800 border w-10"
+            ref="graphBar"
           ></div>
         </div>
         <button
@@ -353,9 +226,10 @@
 import {
   subscribeToTicker,
   unsubscribeFromTicker,
-  getInvalidTickers,
-} from "./api/websocket.js"
-import { loadCoinNamesTo } from "./api/https.js"
+  subscribeToInvalidTicker,
+  unsubscribeFromInvalidTicker,
+} from "./api/websocket.js";
+import { loadCoinNamesTo } from "./api/https.js";
 
 export default {
   name: "App",
@@ -376,164 +250,185 @@ export default {
       tickerExist: false, // Флажок, добалена ли валюта
 
       page: 1, // Текущая страница пагинации
-    }
+      maxGraphElements: 1,
+      graphBarWidth: 38,
+    };
   },
 
   created() {
-    window.onload = () => (this.loading = false)
+    window.onload = () => (this.loading = false);
 
     const windowData = Object.fromEntries(
-      new URL(window.location).searchParams.entries(),
-    )
+      new URL(window.location).searchParams.entries()
+    );
 
-    const VALID_KEYS = ["filter", "page"]
+    const VALID_KEYS = ["filter", "page"];
 
     VALID_KEYS.forEach((key) => {
       if (windowData[key]) {
-        this[key] = windowData[key]
+        this[key] = windowData[key];
       }
-    })
+    });
 
     // Тикеры остаются при перезагрузке страницы
-    const dataTickers = localStorage.getItem("cryptonomicon-list")
+    const dataTickers = localStorage.getItem("cryptonomicon-list");
 
     if (dataTickers) {
-      this.tickers = JSON.parse(dataTickers)
+      this.tickers = JSON.parse(dataTickers);
       this.tickers.forEach((ticker) => {
         subscribeToTicker(ticker.name, (newPrice) => {
-          this.updateTicker(ticker.name, newPrice)
-        })
-      })
+          this.updateTicker(ticker.name, newPrice);
+        });
+
+        subscribeToInvalidTicker(ticker.name, () => {
+          this.invalidTickers.push(ticker.name);
+        });
+      });
     }
     // Запрос имен криптовалют
-    loadCoinNamesTo(this.coinNames)
+    loadCoinNamesTo(this.coinNames);
+  },
+
+  mounted() {
+    window.addEventListener("resize", this.calculateMaxGraphElements);
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("resize", this.calculateMaxGraphElements);
   },
 
   computed: {
     startIndex() {
-      return (this.page - 1) * 6
+      return (this.page - 1) * 6;
     },
 
     endIndex() {
-      return this.page * 6
+      return this.page * 6;
     },
 
     filteredTickers() {
       return this.tickers.filter(
         (ticker) =>
           ticker.name.slice(0, this.filter.length).toUpperCase() ===
-          this.filter.toUpperCase(),
-      )
+          this.filter.toUpperCase()
+      );
     },
 
-    // notValidTickers() {
-    //   this.invalidTickers = [...this.invalidTickers, getInvalidTicerks()]
-    //   return this.invalidTickers
-    // },
-
     paginatedTickers() {
-      return this.filteredTickers.slice(this.startIndex, this.endIndex)
+      return this.filteredTickers.slice(this.startIndex, this.endIndex);
     },
 
     hasNextPage() {
-      return this.filteredTickers.length > this.endIndex
+      return this.filteredTickers.length > this.endIndex;
     },
 
     normalizedGraph() {
-      const maxValue = Math.max(...this.graph)
-      const minValue = Math.min(...this.graph)
+      const maxValue = Math.max(...this.graph);
+      const minValue = Math.min(...this.graph);
 
       if (maxValue === minValue) {
-        return this.graph.map(() => 50)
+        return this.graph.map(() => 50);
       }
 
       return this.graph.map(
-        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue),
-      )
+        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
+      );
     },
 
     pageStateOptions() {
       return {
         filter: this.filter,
         page: this.page,
-      }
+      };
     },
   },
 
   methods: {
     // Обновление данных
     updateTicker(tickerName, price) {
-      this.invalidTickers = getInvalidTickers()
       this.tickers
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
           if (t === this.selectedTicker) {
-            this.graph.push(price)
+            this.graph.push(price);
+
+            if (this.graph.length > this.maxGraphElements) {
+              this.graph = this.graph.slice(-this.maxGraphElements);
+            }
           }
-          t.price = price
-        })
+          t.price = price;
+        });
     },
     // Добавить тикер
     addTicker(tickerName) {
       if (tickerName !== "") {
         if (
           this.tickers.every(
-            (ticker) => ticker.name !== tickerName.toUpperCase(),
+            (ticker) => ticker.name !== tickerName.toUpperCase()
           )
         ) {
           const currentTicker = {
             name: tickerName.toUpperCase(),
             price: "-",
-          }
+          };
 
-          this.tickers = [...this.tickers, currentTicker]
+          this.tickers = [...this.tickers, currentTicker];
 
-          this.ticker = ""
-          this.filter = ""
+          this.ticker = "";
+          this.filter = "";
 
           subscribeToTicker(currentTicker.name, (newPrice) => {
-            this.updateTicker(currentTicker.name, newPrice)
-          })
+            this.updateTicker(currentTicker.name, newPrice);
+          });
+
+          subscribeToInvalidTicker(currentTicker.name, () => {
+            this.invalidTickers.push(currentTicker.name);
+          });
         } else {
-          this.tickerExist = true
-          this.ticker = tickerName
+          this.tickerExist = true;
+          this.ticker = tickerName;
         }
       }
     },
     // Форматировать цену по нулям
     formatPrice(price) {
       if (price === "-") {
-        return price
+        return price;
       }
-      return price > 1 ? price.toFixed(2) : price.toPrecision(2)
+      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
     },
     // Удалить тикер
     removeTicker(tickerToRemove) {
-      this.tickers = this.tickers.filter((ticker) => ticker !== tickerToRemove)
+      this.tickers = this.tickers.filter((ticker) => ticker !== tickerToRemove);
 
       if (this.selectedTicker === tickerToRemove) {
-        this.selectedTicker = null
-        this.tickerExist = false
+        this.selectedTicker = null;
+        this.tickerExist = false;
       }
 
-      unsubscribeFromTicker(tickerToRemove.name)
+      unsubscribeFromTicker(tickerToRemove.name);
+      unsubscribeFromInvalidTicker(tickerToRemove.name, () => {
+        this.invalidTickers = this.invalidTickers.filter(
+          (ticker) => ticker !== tickerToRemove.name
+        );
+      });
     },
     // Нажатие на тикер
     selectTicker(ticker) {
-      this.selectedTicker = ticker
+      this.selectedTicker = ticker;
     },
     // Валидация имени криптовалюты
     autocomplete() {
-      this.tickerExist = false
-      this.currencies = []
+      this.tickerExist = false;
+      this.currencies = [];
       // Пока длина строки выбора валют меньше 4 или пока список валют не закончится
       for (
         let i = 0;
         i < this.coinNames.length && this.currencies.length < 4;
         i++
       ) {
-        let fullName = this.coinNames[i].FullName
-        let symbol = this.coinNames[i].Symbol
+        let fullName = this.coinNames[i].FullName;
+        let symbol = this.coinNames[i].Symbol;
 
         if (
           fullName.slice(0, this.ticker.length).toUpperCase() ===
@@ -544,44 +439,57 @@ export default {
           this.currencies = [...this.currencies, symbol.toUpperCase()] || [
             ...this.currencies,
             fullName.toUpperCase(),
-          ]
+          ];
         }
+      }
+    },
+
+    calculateMaxGraphElements() {
+      if (!this.$refs.graph) {
+        return;
+      }
+
+      this.maxGraphElements = this.$refs.graph.clientWidth / this.graphBarWidth;
+
+      if (this.graph.length > this.maxGraphElements) {
+        this.graph = this.graph.slice(-this.maxGraphElements);
       }
     },
   },
 
   watch: {
     selectedTicker() {
-      this.graph = []
+      this.graph = [];
+      this.$nextTick().then(this.calculateMaxGraphElements);
     },
 
     ticker() {
       if (this.ticker === "") {
-        this.currencies = []
+        this.currencies = [];
       }
     },
 
     tickers() {
-      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers))
+      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
     },
 
     paginatedTickers() {
       if (this.paginatedTickers.length === 0 && this.page > 1) {
-        this.page -= 1
+        this.page -= 1;
       }
     },
 
     filter() {
-      this.page = 1
+      this.page = 1;
     },
 
     pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
-        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`,
-      )
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
+      );
     },
   },
-}
+};
 </script>

@@ -4,7 +4,7 @@ const API_KEY =
   "2579a0b46e780867fb344a5915944d5573fecb55aac44c88c7ab4280d933b61d"
 
 const tickersHandlers = new Map()
-let invalidCurrencies = []
+const invalidTickerHandlers = new Map()
 
 const AGGREGATE_INDEX = "5"
 
@@ -20,17 +20,11 @@ socket.addEventListener("message", (e) => {
     PARAMETER: param,
   } = JSON.parse(e.data)
 
-  if (message === "INVALID_SUB") {
-    let invalidCurrency = getCurrencyFromMessage(param)
-    invalidCurrencies = [...invalidCurrencies, invalidCurrency]
-  } else if (message === "SUBSCRIPTION_UNRECOGNIZED") {
-    let invalidCurrency = getCurrencyFromMessage(param)
+  const invalidCurrency = getCurrencyFromMessage(param)
 
-    if (invalidCurrencies.includes(invalidCurrency)) {
-      invalidCurrencies = invalidCurrencies.filter(
-        (currency) => currency !== invalidCurrency,
-      )
-    }
+  if (message === "INVALID_SUB") {
+    const invalidHandlers = invalidTickerHandlers.get(invalidCurrency) ?? []
+    invalidHandlers.forEach((fn) => fn(invalidCurrency))
   }
 
   if (type !== AGGREGATE_INDEX || newPrice === undefined) {
@@ -42,8 +36,9 @@ socket.addEventListener("message", (e) => {
   handlers.forEach((fn) => fn(newPrice))
 })
 
-function getCurrencyFromMessage(message) {
-  return message.split("~")[2]
+function getCurrencyFromMessage(message = "") {
+  let fromSymbol = message.split("~")[2]
+  return fromSymbol
 }
 
 // Отправка сообщения на действие(отписка, подписка) и на какую валюту подписаться
@@ -89,6 +84,13 @@ export const unsubscribeFromTicker = (ticker) => {
   unsubscribeFromTickerOnWs(ticker)
 }
 
-export const getInvalidTickers = () => {
-  return invalidCurrencies
+// Добавляет все тикекры
+export const subscribeToInvalidTicker = (ticker, cb) => {
+  const subscribers = invalidTickerHandlers.get(ticker) || []
+  invalidTickerHandlers.set(ticker, [...subscribers, cb])
+}
+
+export const unsubscribeFromInvalidTicker = (ticker, cb) => {
+  invalidTickerHandlers.delete(ticker)
+  cb(ticker)
 }
