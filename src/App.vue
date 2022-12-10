@@ -1,31 +1,7 @@
 <template>
   <div class="container mx-auto flex flex-col items-center bg-gray-100 p-4">
     <!-- load -->
-    <div
-      v-if="loading"
-      class="fixed w-100 h-100 opacity-80 bg-purple-800 inset-0 z-50 flex items-center justify-center"
-    >
-      <svg
-        class="animate-spin -ml-1 mr-3 h-12 w-12 text-white"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        ></circle>
-        <path
-          class="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-        ></path>
-      </svg>
-    </div>
+    <loading-spinner />
     <!-- /load -->
 
     <div class="container">
@@ -228,11 +204,17 @@ import {
   unsubscribeFromTicker,
   subscribeToInvalidTicker,
   unsubscribeFromInvalidTicker,
-} from "./api/websocket.js";
-import { loadCoinNamesTo } from "./api/https.js";
+} from "./api/websocket.js"
+
+import { loadCoinNamesTo } from "./api/https.js"
+import LoadingSpinner from "./components/LoadingSpinner.vue"
 
 export default {
   name: "App",
+
+  components: {
+    LoadingSpinner,
+  },
 
   data() {
     return {
@@ -246,100 +228,97 @@ export default {
       invalidTickers: [], // невалидные имена валют
 
       selectedTicker: null, // Значение для выбранного тикера
-      loading: true, // Флажок для элемента загрузки страницы
       tickerExist: false, // Флажок, добалена ли валюта
 
       page: 1, // Текущая страница пагинации
       maxGraphElements: 1,
       graphBarWidth: 38,
-    };
+    }
   },
 
   created() {
-    window.onload = () => (this.loading = false);
-
     const windowData = Object.fromEntries(
-      new URL(window.location).searchParams.entries()
-    );
+      new URL(window.location).searchParams.entries(),
+    )
 
-    const VALID_KEYS = ["filter", "page"];
+    const VALID_KEYS = ["filter", "page"]
 
     VALID_KEYS.forEach((key) => {
       if (windowData[key]) {
-        this[key] = windowData[key];
+        this[key] = windowData[key]
       }
-    });
+    })
 
     // Тикеры остаются при перезагрузке страницы
-    const dataTickers = localStorage.getItem("cryptonomicon-list");
+    const dataTickers = localStorage.getItem("cryptonomicon-list")
 
     if (dataTickers) {
-      this.tickers = JSON.parse(dataTickers);
+      this.tickers = JSON.parse(dataTickers)
       this.tickers.forEach((ticker) => {
         subscribeToTicker(ticker.name, (newPrice) => {
-          this.updateTicker(ticker.name, newPrice);
-        });
+          this.updateTicker(ticker.name, newPrice)
+        })
 
         subscribeToInvalidTicker(ticker.name, () => {
-          this.invalidTickers.push(ticker.name);
-        });
-      });
+          this.invalidTickers.push(ticker.name)
+        })
+      })
     }
     // Запрос имен криптовалют
-    loadCoinNamesTo(this.coinNames);
+    loadCoinNamesTo(this.coinNames)
   },
 
   mounted() {
-    window.addEventListener("resize", this.calculateMaxGraphElements);
+    window.addEventListener("resize", this.calculateMaxGraphElements)
   },
 
   beforeUnmount() {
-    window.removeEventListener("resize", this.calculateMaxGraphElements);
+    window.removeEventListener("resize", this.calculateMaxGraphElements)
   },
 
   computed: {
     startIndex() {
-      return (this.page - 1) * 6;
+      return (this.page - 1) * 6
     },
 
     endIndex() {
-      return this.page * 6;
+      return this.page * 6
     },
 
     filteredTickers() {
       return this.tickers.filter(
         (ticker) =>
           ticker.name.slice(0, this.filter.length).toUpperCase() ===
-          this.filter.toUpperCase()
-      );
+          this.filter.toUpperCase(),
+      )
     },
 
     paginatedTickers() {
-      return this.filteredTickers.slice(this.startIndex, this.endIndex);
+      return this.filteredTickers.slice(this.startIndex, this.endIndex)
     },
 
     hasNextPage() {
-      return this.filteredTickers.length > this.endIndex;
+      return this.filteredTickers.length > this.endIndex
     },
 
     normalizedGraph() {
-      const maxValue = Math.max(...this.graph);
-      const minValue = Math.min(...this.graph);
+      const maxValue = Math.max(...this.graph)
+      const minValue = Math.min(...this.graph)
 
       if (maxValue === minValue) {
-        return this.graph.map(() => 50);
+        return this.graph.map(() => 50)
       }
 
       return this.graph.map(
-        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue)
-      );
+        (price) => 5 + ((price - minValue) * 95) / (maxValue - minValue),
+      )
     },
 
     pageStateOptions() {
       return {
         filter: this.filter,
         page: this.page,
-      };
+      }
     },
   },
 
@@ -350,85 +329,85 @@ export default {
         .filter((t) => t.name === tickerName)
         .forEach((t) => {
           if (t === this.selectedTicker) {
-            this.graph.push(price);
+            this.graph.push(price)
 
             if (this.graph.length > this.maxGraphElements) {
-              this.graph = this.graph.slice(-this.maxGraphElements);
+              this.graph = this.graph.slice(-this.maxGraphElements)
             }
           }
-          t.price = price;
-        });
+          t.price = price
+        })
     },
     // Добавить тикер
     addTicker(tickerName) {
       if (tickerName !== "") {
         if (
           this.tickers.every(
-            (ticker) => ticker.name !== tickerName.toUpperCase()
+            (ticker) => ticker.name !== tickerName.toUpperCase(),
           )
         ) {
           const currentTicker = {
             name: tickerName.toUpperCase(),
             price: "-",
-          };
+          }
 
-          this.tickers = [...this.tickers, currentTicker];
+          this.tickers = [...this.tickers, currentTicker]
 
-          this.ticker = "";
-          this.filter = "";
+          this.ticker = ""
+          this.filter = ""
 
           subscribeToTicker(currentTicker.name, (newPrice) => {
-            this.updateTicker(currentTicker.name, newPrice);
-          });
+            this.updateTicker(currentTicker.name, newPrice)
+          })
 
           subscribeToInvalidTicker(currentTicker.name, () => {
-            this.invalidTickers.push(currentTicker.name);
-          });
+            this.invalidTickers.push(currentTicker.name)
+          })
         } else {
-          this.tickerExist = true;
-          this.ticker = tickerName;
+          this.tickerExist = true
+          this.ticker = tickerName
         }
       }
     },
     // Форматировать цену по нулям
     formatPrice(price) {
       if (price === "-") {
-        return price;
+        return price
       }
-      return price > 1 ? price.toFixed(2) : price.toPrecision(2);
+      return price > 1 ? price.toFixed(2) : price.toPrecision(2)
     },
     // Удалить тикер
     removeTicker(tickerToRemove) {
-      this.tickers = this.tickers.filter((ticker) => ticker !== tickerToRemove);
+      this.tickers = this.tickers.filter((ticker) => ticker !== tickerToRemove)
 
       if (this.selectedTicker === tickerToRemove) {
-        this.selectedTicker = null;
-        this.tickerExist = false;
+        this.selectedTicker = null
+        this.tickerExist = false
       }
 
-      unsubscribeFromTicker(tickerToRemove.name);
+      unsubscribeFromTicker(tickerToRemove.name)
       unsubscribeFromInvalidTicker(tickerToRemove.name, () => {
         this.invalidTickers = this.invalidTickers.filter(
-          (ticker) => ticker !== tickerToRemove.name
-        );
-      });
+          (ticker) => ticker !== tickerToRemove.name,
+        )
+      })
     },
     // Нажатие на тикер
     selectTicker(ticker) {
-      this.selectedTicker = ticker;
+      this.selectedTicker = ticker
     },
     // Валидация имени криптовалюты
     autocomplete() {
-      this.tickerExist = false;
-      this.currencies = [];
+      this.tickerExist = false
+      this.currencies = []
       // Пока длина строки выбора валют меньше 4 или пока список валют не закончится
       for (
         let i = 0;
         i < this.coinNames.length && this.currencies.length < 4;
         i++
       ) {
-        let fullName = this.coinNames[i].FullName;
-        let symbol = this.coinNames[i].Symbol;
+        let fullName = this.coinNames[i].FullName
+        let symbol = this.coinNames[i].Symbol
 
         if (
           fullName.slice(0, this.ticker.length).toUpperCase() ===
@@ -439,57 +418,57 @@ export default {
           this.currencies = [...this.currencies, symbol.toUpperCase()] || [
             ...this.currencies,
             fullName.toUpperCase(),
-          ];
+          ]
         }
       }
     },
 
     calculateMaxGraphElements() {
       if (!this.$refs.graph) {
-        return;
+        return
       }
 
-      this.maxGraphElements = this.$refs.graph.clientWidth / this.graphBarWidth;
+      this.maxGraphElements = this.$refs.graph.clientWidth / this.graphBarWidth
 
       if (this.graph.length > this.maxGraphElements) {
-        this.graph = this.graph.slice(-this.maxGraphElements);
+        this.graph = this.graph.slice(-this.maxGraphElements)
       }
     },
   },
 
   watch: {
     selectedTicker() {
-      this.graph = [];
-      this.$nextTick().then(this.calculateMaxGraphElements);
+      this.graph = []
+      this.$nextTick().then(this.calculateMaxGraphElements)
     },
 
     ticker() {
       if (this.ticker === "") {
-        this.currencies = [];
+        this.currencies = []
       }
     },
 
     tickers() {
-      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers));
+      localStorage.setItem("cryptonomicon-list", JSON.stringify(this.tickers))
     },
 
     paginatedTickers() {
       if (this.paginatedTickers.length === 0 && this.page > 1) {
-        this.page -= 1;
+        this.page -= 1
       }
     },
 
     filter() {
-      this.page = 1;
+      this.page = 1
     },
 
     pageStateOptions(value) {
       window.history.pushState(
         null,
         document.title,
-        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`
-      );
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`,
+      )
     },
   },
-};
+}
 </script>

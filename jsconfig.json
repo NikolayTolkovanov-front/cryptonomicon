@@ -1,9 +1,19 @@
 {
-  "include": ["./src/**/*"],
   "compilerOptions": {
-    "baseUrl": ".",
+    "target": "es5",
+    "module": "esnext",
+    "baseUrl": "./",
+    "moduleResolution": "node",
     "paths": {
-      "components/*": ["src/components/*"]
-    }
+      "@/*": [
+        "src/*"
+      ]
+    },
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "scripthost"
+    ]
   }
 }
