@@ -1,7 +1,5 @@
 <template>
   <section>
-    <!-- {{ filteredTickers }}
-    {{ paginatedTickers }} -->
     <!-- filter -->
     <p class="block text-sm font-medium text-gray-700">
       Фильтр:
@@ -46,6 +44,14 @@ export default {
     hasNextPage: {
       type: Boolean,
     },
+
+    newPage: {
+      type: Number,
+    },
+
+    newFilter: {
+      type: String,
+    },
   },
 
   emits: ["update-page", "update-filter"],
@@ -61,25 +67,50 @@ export default {
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries(),
     )
-    console.log(windowData)
     const VALID_KEYS = ["filter", "page"]
     VALID_KEYS.forEach((key) => {
       if (windowData[key]) {
-        console.log(typeof windowData[key])
         this[key] = windowData[key]
+        if (key === "page") {
+          this[key] = Number(windowData[key])
+        }
       }
     })
   },
 
   methods: {},
 
+  computed: {
+    pageStateOptions() {
+      return {
+        filter: this.filter,
+        page: this.page,
+      }
+    },
+  },
+
   watch: {
     page() {
       this.$emit("update-page", this.page)
     },
-
     filter() {
       this.$emit("update-filter", this.filter)
+    },
+
+    newPage(value) {
+      this.page = value
+    },
+
+    newFilter(value) {
+      this.filter = value
+    },
+
+    pageStateOptions(value) {
+      window.history.pushState(
+        null,
+        document.title,
+        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`,
+      )
     },
   },
 }

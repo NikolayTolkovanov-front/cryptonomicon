@@ -3,6 +3,8 @@
     <tickers-filter
       :tickers="tickers"
       :hasNextPage="hasNextPage"
+      :newPage="page"
+      :newFilter="filter"
       @update-page="updatePage"
       @update-filter="updateFilter"
     />
@@ -66,7 +68,6 @@ export default {
       tickers: [],
       invalidTickers: [],
       selectedTicker: null,
-      tickerInTickers: false, // убрать
       page: 1,
     }
   },
@@ -116,7 +117,6 @@ export default {
           price: "-",
         }
         this.tickers = [...this.tickers, currentTicker]
-        // emit на очистку filter
         this.filter = ""
 
         subscribeToTicker(currentTicker.name, (newPrice) => {
@@ -126,14 +126,11 @@ export default {
           this.invalidTickers.push(currentTicker.name)
         })
 
-        this.tickerInTickers = false
-        this.$emit("ticker-in-tickers", this.tickerInTickers)
+        this.$emit("ticker-in-tickers", false)
       } else {
-        this.tickerInTickers = true
-        this.$emit("ticker-in-tickers", this.tickerInTickers)
+        this.$emit("ticker-in-tickers", true)
       }
     },
-    // Форматировать цену по нулям
 
     // Удалить тикер
     removeTicker(tickerToRemove) {
@@ -141,8 +138,7 @@ export default {
 
       if (this.selectedTicker === tickerToRemove) {
         this.selectedTicker = null
-        this.tickerInTickers = false
-        this.$emit("ticker-in-tickers", this.tickerInTickers)
+        this.$emit("ticker-in-tickers", false)
       }
 
       unsubscribeFromTicker(tickerToRemove.name)
@@ -177,12 +173,6 @@ export default {
     hasNextPage() {
       return this.filteredTickers.length > this.endIndex
     },
-    pageStateOptions() {
-      return {
-        filter: this.filter,
-        page: this.page,
-      }
-    },
   },
   watch: {
     selectedTicker() {
@@ -201,13 +191,6 @@ export default {
     },
     filter() {
       this.page = 1
-    },
-    pageStateOptions(value) {
-      window.history.pushState(
-        null,
-        document.title,
-        `${window.location.pathname}?filter=${value.filter}&page=${value.page}`,
-      )
     },
   },
 }

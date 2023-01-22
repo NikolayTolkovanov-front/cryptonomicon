@@ -7,7 +7,6 @@
       <input
         v-model="ticker"
         @keydown.enter="addTicker()"
-        @input="autocomplete()"
         type="text"
         name="wallet"
         id="wallet"
@@ -38,6 +37,7 @@ export default {
   data() {
     return {
       ticker: "",
+      currency: this.currencyFromCurrenciesList,
     }
   },
 
@@ -52,15 +52,18 @@ export default {
   },
 
   watch: {
+    currencyFromCurrenciesList(value) {
+      this.ticker = value
+    },
+
     ticker(value) {
       this.$emit("input-changed", value)
+      this.$emit("autocomplete", value)
     },
 
     tickerInTickers(value) {
       if (value[0] === false) {
         this.ticker = ""
-      } else {
-        this.ticker = this.currencyFromCurrenciesList
       }
     },
   },

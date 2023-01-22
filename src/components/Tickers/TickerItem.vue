@@ -44,7 +44,7 @@ export default {
     },
 
     invalidTickers: {
-      type: Object,
+      type: Array,
     },
   },
 

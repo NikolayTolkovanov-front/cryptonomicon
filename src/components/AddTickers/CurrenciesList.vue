@@ -23,8 +23,6 @@ export default {
   props: {
     currency: {
       type: String,
-      default: "",
-      required: false,
     },
 
     tickerInTickers: {
